@@ -1,0 +1,47 @@
+server {
+    listen 80;
+    index index.php index.html;
+    server_name $NGINX_HOST;
+    error_log /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+    root /var/www/html/public;
+
+    location / {
+        try_files ${DOLLAR}uri ${DOLLAR}uri/ /index.php?${DOLLAR}query_string;
+    }
+
+    location ~ \.php${DOLLAR} {
+        try_files ${DOLLAR}uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)${DOLLAR};
+        fastcgi_pass $PHP_CONTAINER;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME ${DOLLAR}document_root${DOLLAR}fastcgi_script_name;
+        fastcgi_param PATH_INFO ${DOLLAR}fastcgi_path_info;
+        fastcgi_param PHP_VALUE xdebug.remote_host=$PHP_XDEBUG_HOST;
+    }
+}
+
+server {
+    listen 8080;
+    index index.php index.html;
+    server_name $NGINX_HOST;
+    error_log /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+    root /var/www/html/public;
+
+    location / {
+        try_files ${DOLLAR}uri ${DOLLAR}uri/ /index.php?${DOLLAR}query_string;
+    }
+
+    location ~ \.php${DOLLAR} {
+        try_files ${DOLLAR}uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)${DOLLAR};
+        fastcgi_pass $PHP_CONTAINER;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME ${DOLLAR}document_root${DOLLAR}fastcgi_script_name;
+        fastcgi_param PATH_INFO ${DOLLAR}fastcgi_path_info;
+        fastcgi_param PHP_VALUE xdebug.remote_host=$PHP_XDEBUG_HOST;
+    }
+}

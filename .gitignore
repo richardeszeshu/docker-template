@@ -1,0 +1,4 @@
+bin/docker/local/mysql/data/*
+bin/docker/local/nginx/log/*
+
+!.gitkeep

@@ -1,0 +1,66 @@
+version: '3'
+
+networks:
+  development:
+
+services:
+  nginx:
+    image: "nginx:${NGINX_VERSION}"
+    container_name: "${PROJECT_NAME}-nginx"
+    ports:
+      - "${NGINX_PORT}:80"
+    environment:
+      - NGINX_HOST=${NGINX_HOST}
+      - PHP_CONTAINER=${PROJECT_NAME}-php:9000
+      - PHP_XDEBUG_HOST=${PHP_XDEBUG_HOST}
+      - DOLLAR=$$
+    command: /bin/ash -c "envsubst < /etc/nginx/conf.d/site.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    volumes:
+      - ../../../:/var/www/html
+      - ./nginx/config/site.template:/etc/nginx/conf.d/site.template
+      - ./nginx/log:/var/log/nginx/
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - development
+
+  mysql:
+    image: "mysql:${MYSQL_VERSION}"
+    container_name: "${PROJECT_NAME}-mysql"
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT}:3306"
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    networks:
+      - development
+
+  php:
+    build:
+      context: .
+      dockerfile: php.Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+        PHP_XDEBUG_HOST: ${PHP_XDEBUG_HOST}
+        PHP_XDEBUG_PORT: ${PHP_XDEBUG_PORT}
+        PHP_XDEBUG_IDEKEY: ${PHP_XDEBUG_IDEKEY}
+    container_name: "${PROJECT_NAME}-php"
+    volumes:
+      - ../../../:/var/www/html
+      - ./php/config:/usr/local/etc/php/conf.d
+    ports:
+      - "9000:9000"
+    networks:
+      - development
+    #extra_hosts:
+      ## host.docker.internal IP címe
+      #- "erp.test:192.168.65.2" 
